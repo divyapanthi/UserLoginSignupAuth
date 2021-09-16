@@ -2,24 +2,31 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class AuthServices with ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
+  String? _successMessage;
+  User? _user;
 
   bool get isLoading => _isLoading;
 
   String? get errorMessage => _errorMessage;
+  String? get successMessage => _successMessage;
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
-  Future? register(String email, String password) async {
+  Future<bool?> register(String email, String password) async {
     setLoading(true);
     try {
       final authResult = await firebaseAuth.createUserWithEmailAndPassword(
           email: email, password: password);
-      User? user = authResult.user;
+      _user = authResult.user;
+      print(_user);
+      setSuccessMessage("User Registered Successfully");
       setLoading(false);
-      return user;
+      // return user;
+      return true;
     } on SocketException {
       setMessage("No internet, please connect to internet");
     }
@@ -30,14 +37,18 @@ class AuthServices with ChangeNotifier {
     notifyListeners();
   }
 
-  Future? login(String email, String password) async {
+  Future<bool?> login(String email, String password) async {
     setLoading(true);
     try {
       final authResult = await firebaseAuth.signInWithEmailAndPassword(
           email: email, password: password);
-      User? user = authResult.user;
+      _user = authResult.user;
+
+      print(_user);
+      notifyListeners();
       setLoading(false);
-      return user;
+      // return user;
+      return true;
     } on SocketException {
       setMessage("No internet, please connect to internet");
     }
@@ -49,7 +60,7 @@ class AuthServices with ChangeNotifier {
   }
 
 
-  Future logout() async {
+  Future<void> logout() async {
     await firebaseAuth.signOut();
   }
 
@@ -63,6 +74,12 @@ class AuthServices with ChangeNotifier {
     notifyListeners();
   }
 
-  Stream<User?> get user =>
-      firebaseAuth.authStateChanges().map((event) => event);
+  void setSuccessMessage(success){
+    _successMessage = success;
+    notifyListeners();
+  }
+
+  User? get user => _user;
+      //firebaseAuth.authStateChanges().map((event) => event);
+
 }

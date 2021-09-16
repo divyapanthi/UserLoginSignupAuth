@@ -43,7 +43,9 @@ class _RegisterState extends State<Register> {
             key: _formKey,
             child: Column(
               children: [
-                SizedBox(height: 60,),
+                SizedBox(
+                  height: 60,
+                ),
                 Text(
                   "Welcome",
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -58,47 +60,31 @@ class _RegisterState extends State<Register> {
                 SizedBox(
                   height: 30,
                 ),
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (val) =>
-                  val!.isNotEmpty ? null : "Please enter an email address",
-                  decoration: InputDecoration(
-                    hintText: "Email",
-                    prefixIcon: Icon(Icons.email),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
+                buildTextFormField(),
                 SizedBox(
                   height: 30,
                 ),
-                TextFormField(
-                  controller: _passwordController,
-                  validator: (val) => val!.length > 4
-                      ? null
-                      : "Password must be more than 4 characters.",
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: "Password",
-                    prefixIcon: Icon(Icons.vpn_key),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
+                buildPasswordField(),
                 SizedBox(
                   height: 30,
                 ),
                 MaterialButton(
-                  onPressed: ()  async {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       print("Email: ${_emailController.text}");
                       print("Password: ${_passwordController.text}");
 
-                      await loginProvider.register(_emailController.text.trim(),
+                      final result = await loginProvider.register(_emailController.text.trim(),
                           _passwordController.text.trim());
+                      if(result == true){
+                        displaySnackbar(loginProvider.successMessage, Colors.green);
+                        Navigator.of(context).
+                          push(MaterialPageRoute(builder: (context){
+                            return Login();
+                        }));
+                      }else{
+                        displaySnackbar(loginProvider.errorMessage, Colors.red);
+                      }
                     }
                   },
                   height: 60,
@@ -108,12 +94,16 @@ class _RegisterState extends State<Register> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: loginProvider.isLoading ? CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white) ,
-                  ) : Text(
-                    "Register",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
+                  child: loginProvider.isLoading
+                      ? CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        )
+                      : Text(
+                          "Register",
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
                 ),
                 SizedBox(
                   height: 20,
@@ -122,35 +112,65 @@ class _RegisterState extends State<Register> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text("Already have an account?"),
-                    TextButton(onPressed: (){
-                      Navigator.of(context)
-                          .push(MaterialPageRoute(builder: (context){
-                        return Login();
-                      }));
-                    }, child: Text("Login"))
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(context)
+                              .push(MaterialPageRoute(builder: (context) {
+                            return Login();
+                          }));
+                        },
+                        child: Text("Login"))
                   ],
                 ),
-                SizedBox(height: 20,),
-                if(loginProvider.errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      color: Colors.amberAccent,
-                      child: ListTile(
-                        title: Text(loginProvider.errorMessage!),
-                        leading: Icon(Icons.error),
-                        trailing: IconButton(
-                          icon: Icon(Icons.close),
-                          onPressed: () => loginProvider.setMessage(null),
-                        ),
-                      ),
-                    ),
-                  )
+                SizedBox(
+                  height: 20,
+                ),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  TextFormField buildPasswordField() {
+    return TextFormField(
+                controller: _passwordController,
+                validator: (val) => val!.length > 4
+                    ? null
+                    : "Password must be more than 4 characters.",
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: "Password",
+                  prefixIcon: Icon(Icons.vpn_key),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+  }
+
+  TextFormField buildTextFormField() {
+    return TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                validator: (val) =>
+                    val!.isNotEmpty ? null : "Please enter an email address",
+                decoration: InputDecoration(
+                  hintText: "Email",
+                  prefixIcon: Icon(Icons.email),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+  }
+
+   void displaySnackbar(content, Color color){
+    final snackBar = SnackBar(
+        content: Text(content,
+          style: TextStyle(color: color),
+        ));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }

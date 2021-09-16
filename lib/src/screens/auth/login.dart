@@ -32,9 +32,9 @@ class _LoginState extends State<Login> {
     super.dispose();
   }
 
+
   @override
   Widget build(BuildContext context) {
-    final loginProvider = Provider.of<AuthServices>(context);
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -43,7 +43,9 @@ class _LoginState extends State<Login> {
             key: _formKey,
             child: Column(
               children: [
-                SizedBox(height: 60,),
+                SizedBox(
+                  height: 60,
+                ),
                 Text(
                   "Welcome Back",
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -58,25 +60,13 @@ class _LoginState extends State<Login> {
                 SizedBox(
                   height: 30,
                 ),
-                TextFormField(
-                  controller: _emailController,
-                  validator: (val) =>
-                  val!.isNotEmpty ? null : "Please enter an email address",
-                  decoration: InputDecoration(
-                    hintText: "Email",
-                    prefixIcon: Icon(Icons.email),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
+                buildEmailField(),
                 SizedBox(
                   height: 30,
                 ),
                 TextFormField(
                   controller: _passwordController,
-                  validator: (val) =>
-                  val!.length > 4
+                  validator: (val) => val!.length > 4
                       ? null
                       : "Password must be more than 4 characters.",
                   obscureText: true,
@@ -91,33 +81,7 @@ class _LoginState extends State<Login> {
                 SizedBox(
                   height: 30,
                 ),
-                MaterialButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      print("Email: ${_emailController.text}");
-                      print("Password: ${_passwordController.text}");
-
-                      await loginProvider.login(_emailController.text.trim(),
-                          _passwordController.text.trim());
-
-                    }
-                  },
-                  height: 60,
-                  minWidth: loginProvider.isLoading ? null : double.infinity,
-                  color: Theme
-                      .of(context)
-                      .primaryColor,
-                  textColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: loginProvider.isLoading
-                      ? CircularProgressIndicator()
-                      : Text(
-                    "Login",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
+                _buildLoginButton(),
                 SizedBox(
                   height: 20,
                 ),
@@ -125,19 +89,82 @@ class _LoginState extends State<Login> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text("Don't have an account?"),
-                    TextButton(onPressed: () {
-                      Navigator.of(context)
-                          .push(MaterialPageRoute(builder: (context) {
-                        return Register();
-                      }));
-                    }, child: Text("Register"))
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(context)
+                              .push(MaterialPageRoute(builder: (context) {
+                            return Register();
+                          }));
+                        },
+                        child: Text("Register"))
                   ],
-                )
+                ),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  TextFormField buildEmailField() {
+    return TextFormField(
+      controller: _emailController,
+      keyboardType: TextInputType.emailAddress,
+      validator: (val) =>
+          val!.isNotEmpty ? null : "Please enter an email address",
+      decoration: InputDecoration(
+        hintText: "Email",
+        prefixIcon: Icon(Icons.email),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginButton() {
+    final loginProvider = Provider.of<AuthServices>(context);
+    return MaterialButton(
+      onPressed: () async {
+        if (_formKey.currentState!.validate()) {
+          print("Email: ${_emailController.text}");
+          print("Password: ${_passwordController.text}");
+
+          final result = await loginProvider.login(
+              _emailController.text.trim(), _passwordController.text.trim());
+
+          if (result != true) {
+            displaySnackbar(loginProvider.errorMessage, Colors.red);
+          } else {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+              return HomeScreen();
+            }));
+          }
+        }
+      },
+      height: 60,
+      minWidth: double.infinity,
+      color: Theme.of(context).primaryColor,
+      textColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: loginProvider.isLoading
+          ? CircularProgressIndicator()
+          : Text(
+              "Login",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+    );
+  }
+
+  void displaySnackbar(content, Color color) {
+    final snackBar = SnackBar(
+        content: Text(
+      content,
+      style: TextStyle(color: color),
+    ));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }

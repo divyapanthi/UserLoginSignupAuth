@@ -3,12 +3,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:user_auth/src/screens/auth/login.dart';
-import 'package:user_auth/src/screens/auth/wrapper.dart';
 import 'package:user_auth/src/services/auth_service.dart';
 
 Future<void> main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp();
   runApp(MyApp());
 }
 
@@ -25,10 +22,10 @@ class MyApp extends StatelessWidget {
           return MultiProvider(
               providers: [
                 ChangeNotifierProvider<AuthServices>.value(value: AuthServices()),
-                StreamProvider<User?>.value(
-                    value: AuthServices().user,
-                    initialData: null,
-                ),
+                // StreamProvider<User?>.value(
+                //     value: AuthServices().user,
+                //     initialData: null,
+                // ),
               ],
             child: MaterialApp(
               debugShowCheckedModeBanner: false,
@@ -36,7 +33,7 @@ class MyApp extends StatelessWidget {
               theme: ThemeData(
                 primarySwatch: Colors.purple,
               ),
-              home: Wrapper(),
+              home: Login(),
             ),
           );
         }else{

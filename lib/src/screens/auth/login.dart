@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:user_auth/src/core/constants/validators/global_auth_validator.dart';
 import 'package:user_auth/src/screens/auth/register.dart';
 import 'package:user_auth/src/screens/home_screen.dart';
 import 'package:user_auth/src/services/auth_service.dart';
@@ -32,9 +34,9 @@ class _LoginState extends State<Login> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
+    final loginProvider = Provider.of<AuthServices>(context);
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -64,20 +66,7 @@ class _LoginState extends State<Login> {
                 SizedBox(
                   height: 30,
                 ),
-                TextFormField(
-                  controller: _passwordController,
-                  validator: (val) => val!.length > 4
-                      ? null
-                      : "Password must be more than 4 characters.",
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: "Password",
-                    prefixIcon: Icon(Icons.vpn_key),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
+                buildPasswordField(),
                 SizedBox(
                   height: 30,
                 ),
@@ -85,6 +74,15 @@ class _LoginState extends State<Login> {
                 SizedBox(
                   height: 20,
                 ),
+                Text(
+                  "Or login with",
+                  style: TextStyle(color: Colors.grey),
+                ),
+                IconButton(
+                    icon: SvgPicture.asset("assets/icons/google.svg"),
+                    onPressed: () async {
+                      await loginProvider.googleSignIn();
+                    }),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -107,12 +105,28 @@ class _LoginState extends State<Login> {
     );
   }
 
+  TextFormField buildPasswordField() {
+    return TextFormField(
+      controller: _passwordController,
+      validator: (val) =>
+          GlobalAuthValidator.validatePassword(_passwordController.text),
+      obscureText: true,
+      decoration: InputDecoration(
+        hintText: "Password",
+        prefixIcon: Icon(Icons.vpn_key),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
   TextFormField buildEmailField() {
     return TextFormField(
       controller: _emailController,
-      keyboardType: TextInputType.emailAddress,
       validator: (val) =>
-          val!.isNotEmpty ? null : "Please enter an email address",
+          GlobalAuthValidator.validateEmail(_emailController.text),
+      keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
         hintText: "Email",
         prefixIcon: Icon(Icons.email),
@@ -135,7 +149,9 @@ class _LoginState extends State<Login> {
               _emailController.text.trim(), _passwordController.text.trim());
 
           if (result != true) {
-            displaySnackbar(loginProvider.errorMessage, Colors.red);
+            displaySnackbar(
+              snackBarContent: loginProvider.errorMessage,
+              isErr: true);
           } else {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) {
               return HomeScreen();
@@ -159,11 +175,10 @@ class _LoginState extends State<Login> {
     );
   }
 
-  void displaySnackbar(content, Color color) {
+  void displaySnackbar({snackBarContent, bool? isErr}) {
     final snackBar = SnackBar(
-        content: Text(
-      content,
-      style: TextStyle(color: color),
+        content: Text(snackBarContent,
+      style: TextStyle(color: isErr! ? Colors.red : Colors.green),
     ));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }

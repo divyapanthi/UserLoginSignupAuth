@@ -60,7 +60,7 @@ class _RegisterState extends State<Register> {
                 SizedBox(
                   height: 30,
                 ),
-                buildTextFormField(),
+                buildEmailField(),
                 SizedBox(
                   height: 30,
                 ),
@@ -77,13 +77,17 @@ class _RegisterState extends State<Register> {
                       final result = await loginProvider.register(_emailController.text.trim(),
                           _passwordController.text.trim());
                       if(result == true){
-                        displaySnackbar(loginProvider.successMessage, Colors.green);
+                        displaySnackbar(
+                            snackBarContent: loginProvider.successMessage,
+                            isErr: false);
                         Navigator.of(context).
                           push(MaterialPageRoute(builder: (context){
                             return Login();
                         }));
                       }else{
-                        displaySnackbar(loginProvider.errorMessage, Colors.red);
+                        displaySnackbar(
+                            snackBarContent: loginProvider.errorMessage,
+                            isErr: true);
                       }
                     }
                   },
@@ -150,7 +154,7 @@ class _RegisterState extends State<Register> {
               );
   }
 
-  TextFormField buildTextFormField() {
+  TextFormField buildEmailField() {
     return TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -166,10 +170,10 @@ class _RegisterState extends State<Register> {
               );
   }
 
-   void displaySnackbar(content, Color color){
+  void displaySnackbar({snackBarContent, bool? isErr}) {
     final snackBar = SnackBar(
-        content: Text(content,
-          style: TextStyle(color: color),
+        content: Text(snackBarContent,
+          style: TextStyle(color: isErr! ? Colors.red : Colors.green),
         ));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
